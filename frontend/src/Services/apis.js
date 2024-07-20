@@ -1,5 +1,5 @@
-// const BASE_URL = "https://farmgenesis-backend.onrender.com/api";
-const BASE_URL = "http://localhost:8000/api";
+const BASE_URL = "https://farmgenesis-backend.onrender.com/api";
+// const BASE_URL = "http://localhost:8000/api";
 const BASE_URL_ML = "http://localhost:5000";
 
 export const endpoints = {

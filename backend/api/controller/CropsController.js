@@ -6,23 +6,33 @@ const mongoose = require('mongoose');
 exports.addCrops = async (req, res, next) => {
     try {
         console.log(req.body);
-        const { email, cropName, image, quantity, perKgPrice } = req.body
+        const { email, cropName, quantity, perKgPrice } = req.body;
+
+        const farmerdata = await Farmer.findOne({ email: email });
+
+        console.log(farmerdata);
 
         const newCrop = new Crop({
             email: email,
+            contact: farmerdata.contact,
+            name: farmerdata.name,
             cropName: cropName,
-            image: req.file ? req.file.path : req.body.path,
             quantity: quantity,
             perKgPrice: perKgPrice
-        })
-        const user = await newCrop.save();
-        res.status(200).send({ status: 200, data: { newCrop: newCrop }, message: "Saved" });
-        return;
+        });
+
+        const savedCrop = await newCrop.save();
+        res.status(200).send({ status: 200, data: { newCrop: savedCrop }, message: "Crop added successfully" });
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            res.status(400).send({ status: 400, message: error.message });
+        } else {
+            next(error);
+        }
     }
-    catch (error) {
-        next(error)
-    }
-}
+};
+
+
 
 exports.cropsDetails = async (req, res, next) => {
     try {

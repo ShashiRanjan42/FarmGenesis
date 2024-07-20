@@ -1,4 +1,5 @@
-const BASE_URL = "https://farmgenesis-backend.onrender.com/api";
+// const BASE_URL = "https://farmgenesis-backend.onrender.com/api";
+const BASE_URL = "http://localhost:8000/api";
 const BASE_URL_ML = "http://localhost:5000";
 
 export const endpoints = {
@@ -27,4 +28,13 @@ export const cropapi = {
 export const farmerapi = {
     FARMER_API : BASE_URL + "/farmer/Farmers",
     UNIQUE_FARMER_API : BASE_URL + "/farmer/UniqueFarmer",
+}
+
+export const payment = {
+    CAP_PAY : BASE_URL + "/transaction/create-payment",
+    VER_PAY : BASE_URL + "/transaction/success-transaction",
+}
+
+export const Transection = {
+    TRANS_URL : BASE_URL + "/transaction/addOrder",
 }

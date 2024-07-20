@@ -1,93 +1,48 @@
 const Razorpay = require("razorpay");
 require("dotenv").config();
 let Farmer = require('../model/Farmer');
+const crypto = require("crypto");
 
-exports.createPaymentLink = async (req, res, next) => {
+exports.createPaymentLink = async (req, res) => {
     try {
-        const {
-            amount,
-            currency = 'INR',
-            desc,
-            customer_name,
-            customer_email,
-            customer_contact,
-            notesObj,
-        } = req.body;
+        const razorpay = new Razorpay({
+            key_id: process.env.RAZORPAY_KEY_ID,
+            key_secret: process.env.RAZORPAY_SECRET,
+        });
 
-        // Logging to check if environment variables are loaded correctly
-        console.log("KEY_ID:", process.env.KEY_ID);
-        console.log("KEY_SECRET:", process.env.KEY_SECRET);
+        const options = req.body;
 
-        if (!process.env.KEY_ID || !process.env.KEY_SECRET) {
-            return res.status(500).json({
-                message: "Razorpay key_id and key_secret must be set in environment variables"
-            });
+        // Create order with Razorpay
+        const order = await razorpay.orders.create(options);
+
+        // Check if order creation was successful
+        if (!order) {
+            return res.status(500).json({ error: "Failed to create order" });
         }
 
-        if (!amount || amount <= 0) {
-            return res.status(400).json({
-                message: "Amount must be a positive value"
-            });
-        }
-
-        const instance = new Razorpay({
-            key_id: process.env.KEY_ID,
-            key_secret: process.env.KEY_SECRET
-        });
-
-        const paymentLink = await instance.paymentLink.create({
-            amount: amount * 100, // Convert amount to paise
-            currency: currency,
-            accept_partial: true,
-            first_min_partial_amount: Math.min(100, amount * 100),
-            description: desc,
-            customer: {
-                name: customer_name,
-                email: customer_email,
-                contact: customer_contact
-            },
-            notify: {
-                sms: true,
-                email: true
-            },
-            reminder_enable: true,
-            notes: {
-                ...notesObj
-            },
-            callback_url: `http://localhost:8000/api/transaction/success-transaction?farmer=${customer_email}&amount=${amount}&quantity=${notesObj.quantity}`,
-            callback_method: "get"
-        });
-
-        return res.status(200).json({
-            message: "Transaction link created successfully",
-            paymentLink
-        });
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({
-            message: error.message
-        });
+        // Return the order details as JSON response
+        res.json(order);
+    } catch (err) {
+        console.error("Error creating payment link:", err);
+        res.status(500).json({ error: "Failed to create payment link" });
     }
 };
 
-exports.successTransaction = async (req, res, next) => {
-    try {
-        const { farmer, amount, quantity } = req.query;
-
-        const farmerData = await Farmer.findOne({ email: farmer });
-        if (!farmerData) {
-            return res.status(404).json({
-                message: "Farmer not found"
-            });
-        }
-
-        farmerData.moneyEarned += parseFloat(amount);
-        farmerData.totalCropSelled += parseFloat(quantity);
-        await farmerData.save();
-
-        res.redirect("http://localhost:3000");
-    } catch (error) {
-        console.error(error);
-        res.redirect("http://localhost:3000");
+exports.successTransaction = async (req,res) => {
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
+      req.body;
+  
+    const sha = crypto.createHmac("sha256", process.env.RAZORPAY_SECRET);
+    //order_id + "|" + razorpay_payment_id
+    sha.update(`${razorpay_order_id}|${razorpay_payment_id}`);
+    const digest = sha.digest("hex");
+    if (digest !== razorpay_signature) {
+      return res.status(400).json({ msg: "Transaction is not legit!" });
     }
-};
+  
+    res.json({
+      msg: "success",
+      orderId: razorpay_order_id,
+      paymentId: razorpay_payment_id,
+    });
+}

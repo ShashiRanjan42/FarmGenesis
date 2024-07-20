@@ -1,18 +1,32 @@
 const mongoose = require("mongoose");
-var conn = mongoose.Collection;
-var FarmerSchema = new mongoose.Schema({
-    
+
+const FarmerSchema = new mongoose.Schema({
     email: {
-        type: String
+        type: String,
+        required: true,
+        unique: true,
+        trim: true,
+        lowercase: true
     },
-    totalCropSelled: {
-        type: Number
+    contact: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    totalCropSelled: {  // sold krna spelling check
+        type: Number,
+        default: 0
     },
     moneyEarned: {
-        type: Number
+        type: Number,
+        default: 0
     }
-},
-{ timestamps: true }
-);
-var Farmer = mongoose.model('Farmer',FarmerSchema);
+}, { timestamps: true });
+
+const Farmer = mongoose.model('Farmer', FarmerSchema);
 module.exports = Farmer;

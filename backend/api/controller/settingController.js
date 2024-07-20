@@ -1,5 +1,6 @@
 const User = require('../model/User');
 const mongoose = require('mongoose');
+const bcrypt = require("bcrypt");
 
 exports.changePassword = async (req, res, next) => {
     try {
@@ -14,12 +15,17 @@ exports.changePassword = async (req, res, next) => {
         }
 
         // Check if current password matches
-        if (currentPassword !== user.password) {
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) 
+        {
             return res.status(400).json({ status: 400, message: "Current password is incorrect" });
         }
 
-        // Update password
-        user.password = newPassword;
+        // Hash the new password
+        const hashedPasswordNew = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPasswordNew;
+
+        // Save the updated user
         const updatedUser = await user.save();
 
         res.status(200).json({
@@ -46,7 +52,8 @@ exports.deleteAccount = async (req, res, next) => {
         }
 
         // Check if current password matches
-        if (currentPassword !== user.password) {
+        const isMatch = await bcrypt.compare(currentPassword, user.password);
+        if (!isMatch) {
             return res.status(400).json({ status: 400, message: "Current password is incorrect" });
         }
 

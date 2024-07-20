@@ -1,39 +1,40 @@
 const mongoose = require("mongoose");
 
-const CropSchema = new mongoose.Schema({
+const TransectionSchema = new mongoose.Schema({
     email: {
         type: mongoose.Schema.Types.String,
         ref: 'Farmer',
         required: true
     },
-    contact: {
-        type: String,
-        required: true
-    },
-    name: {
+    farmerEmail: {
         type: String,
         required: true
     },
     cropName: {
         type: String,
+        required: true
+    },
+    orderId: {
+        type: String,
+        required: true
+    },
+    paymentId: {
+        type: String,
         required: true,
         trim: true
-    },
-    image: {
-        type: String
     },
     quantity: {
         type: Number,
         required: true,
         trim: true
     },
-    perKgPrice: {
+    amount: {
         type: Number,
         required: true,
         trim: true
     }
 }, { timestamps: true });
 
-const Crop = mongoose.model('Crop', CropSchema);
+const Transection = mongoose.model('Transection', TransectionSchema);
 
-module.exports = Crop;
+module.exports = Transection;
